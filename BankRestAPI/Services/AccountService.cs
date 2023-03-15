@@ -31,13 +31,19 @@ namespace BankRestAPI.Services
 
         public async Task<IEnumerable<Account>> GetAll()
         {
-            return await _dbContext.Account.ToListAsync();
+            return await _dbContext.Account
+                .Include(a => a.Customer)
+                .Include(b => b.Bank)
+                .ToListAsync();
         }
 
-        public async Task<Account> GetById(Guid id)
+        public async Task<Account?> GetById(Guid id)
         {
-            var account = await _dbContext.Account.FindAsync(id);
-            return account ?? null;
+            var account = await _dbContext.Account
+                .Include (a => a.Customer)
+                .Include(b => b.Bank)
+                .FirstOrDefaultAsync(a=>a.Id == id);
+            return account;
         }
 
         public async Task<Account> Update(Account entity)
@@ -45,6 +51,12 @@ namespace BankRestAPI.Services
             _dbContext.Account.Update(entity);
             await _dbContext.SaveChangesAsync();
             return entity;
+        }
+
+        public async Task<Account?> GetByNumber(string number)
+        {
+            var account = await _dbContext.Account.FirstOrDefaultAsync(b => b.Number == number);
+            return account;
         }
     }
 }

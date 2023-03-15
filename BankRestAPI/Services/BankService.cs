@@ -34,10 +34,10 @@ namespace BankRestAPI.Services
             return await _dbContext.Bank.ToListAsync();
         }
 
-        public async Task<Bank> GetById(Guid id)
+        public async Task<Bank?> GetById(Guid id)
         {
             var bank = await _dbContext.Bank.FindAsync(id);
-            return bank ?? null;
+            return bank;
         }
 
         public async Task<Bank> Update(Bank entity)
@@ -45,6 +45,18 @@ namespace BankRestAPI.Services
             _dbContext.Bank.Update(entity);
             await _dbContext.SaveChangesAsync();
             return entity;
+        }
+
+        public async Task<Bank?> GetByCode(string code)
+        {
+            var bank = await _dbContext.Bank.FirstOrDefaultAsync(b => b.Code == code);
+            return bank;
+        }
+
+        public async Task<Bank?> GetByName(string name)
+        {
+            var bank = await _dbContext.Bank.FirstOrDefaultAsync(b => b.Name == name);
+            return bank;
         }
     }
 }

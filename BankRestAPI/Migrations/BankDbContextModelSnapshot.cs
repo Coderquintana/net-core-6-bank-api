@@ -17,7 +17,7 @@ namespace BankRestAPI.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.3")
+                .HasAnnotation("ProductVersion", "7.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -42,8 +42,9 @@ namespace BankRestAPI.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long?>("Number")
-                        .HasColumnType("bigint");
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -61,6 +62,10 @@ namespace BankRestAPI.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Code")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -97,9 +102,8 @@ namespace BankRestAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Amount")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
 
                     b.Property<string>("Currency")
                         .IsRequired()
@@ -115,12 +119,15 @@ namespace BankRestAPI.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("FromDocumentNumber")
-                        .IsRequired()
+                    b.Property<string>("FromCustomerDocumentNumber")
                         .HasColumnType("text");
 
                     b.Property<DateTime>("OperationDate")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<Guid>("ToAccountId")
                         .HasColumnType("uuid");
@@ -132,12 +139,7 @@ namespace BankRestAPI.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("ToDocumentNumber")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("TransactionState")
-                        .IsRequired()
+                    b.Property<string>("ToCustomerDocumentNumber")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -146,9 +148,13 @@ namespace BankRestAPI.Migrations
 
                     b.HasIndex("FromBankId");
 
+                    b.HasIndex("FromCustomerDocumentNumber");
+
                     b.HasIndex("ToAccountId");
 
                     b.HasIndex("ToBankId");
+
+                    b.HasIndex("ToCustomerDocumentNumber");
 
                     b.ToTable("Transfer");
                 });
@@ -156,7 +162,7 @@ namespace BankRestAPI.Migrations
             modelBuilder.Entity("BankRestAPI.Models.Account", b =>
                 {
                     b.HasOne("BankRestAPI.Models.Bank", "Bank")
-                        .WithMany("Accounts")
+                        .WithMany()
                         .HasForeignKey("BankId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -186,6 +192,10 @@ namespace BankRestAPI.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("BankRestAPI.Models.Customer", "FromCustomer")
+                        .WithMany()
+                        .HasForeignKey("FromCustomerDocumentNumber");
+
                     b.HasOne("BankRestAPI.Models.Account", "ToAccount")
                         .WithMany()
                         .HasForeignKey("ToAccountId")
@@ -198,18 +208,21 @@ namespace BankRestAPI.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("BankRestAPI.Models.Customer", "ToCustomer")
+                        .WithMany()
+                        .HasForeignKey("ToCustomerDocumentNumber");
+
                     b.Navigation("FromAccount");
 
                     b.Navigation("FromBank");
 
+                    b.Navigation("FromCustomer");
+
                     b.Navigation("ToAccount");
 
                     b.Navigation("ToBank");
-                });
 
-            modelBuilder.Entity("BankRestAPI.Models.Bank", b =>
-                {
-                    b.Navigation("Accounts");
+                    b.Navigation("ToCustomer");
                 });
 #pragma warning restore 612, 618
         }

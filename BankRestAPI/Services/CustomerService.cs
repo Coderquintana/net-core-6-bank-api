@@ -32,10 +32,10 @@ namespace BankRestAPI.Services
             return await _dbContext.Customer.ToListAsync();
         }
 
-        public async Task<Customer> GetById(string DocumentNumber)
+        public async Task<Customer?> GetById(string DocumentNumber)
         {
-            var customer =  await _dbContext.Customer.FindAsync(DocumentNumber);
-            return customer ?? null;
+            var customer =  await _dbContext.Customer.FirstOrDefaultAsync(c=>c.DocumentNumber == DocumentNumber);
+            return customer;
         }
         
 
@@ -44,6 +44,12 @@ namespace BankRestAPI.Services
             _dbContext.Customer.Update(entity);
             await _dbContext.SaveChangesAsync();
             return entity;
+        }
+
+        public async Task<Customer?> GetByDocument(string document)
+        {
+            var customer = await _dbContext.Customer.FirstOrDefaultAsync(b => b.DocumentNumber == document);
+            return customer;
         }
     }
 }

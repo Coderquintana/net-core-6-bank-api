@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace BankRestAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class NewMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -16,6 +16,7 @@ namespace BankRestAPI.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Code = table.Column<string>(type: "text", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Address = table.Column<string>(type: "text", nullable: false)
                 },
@@ -42,7 +43,7 @@ namespace BankRestAPI.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Number = table.Column<long>(type: "bigint", nullable: true),
+                    Number = table.Column<string>(type: "text", nullable: false),
                     Currency = table.Column<string>(type: "text", nullable: false),
                     Balance = table.Column<decimal>(type: "numeric", nullable: false),
                     CustomerDocumentNumber = table.Column<string>(type: "text", nullable: false),
@@ -70,18 +71,18 @@ namespace BankRestAPI.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    FromBankId = table.Column<Guid>(type: "uuid", nullable: false),
                     FromBankName = table.Column<string>(type: "text", nullable: false),
-                    FromDocumentNumber = table.Column<string>(type: "text", nullable: false),
+                    FromCustomerDocumentNumber = table.Column<string>(type: "text", nullable: true),
+                    FromBankId = table.Column<Guid>(type: "uuid", nullable: false),
                     FromAccountId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ToBankId = table.Column<Guid>(type: "uuid", nullable: false),
                     ToBankName = table.Column<string>(type: "text", nullable: false),
-                    ToDocumentNumber = table.Column<string>(type: "text", nullable: false),
+                    ToCustomerDocumentNumber = table.Column<string>(type: "text", nullable: true),
+                    ToBankId = table.Column<Guid>(type: "uuid", nullable: false),
                     ToAccountId = table.Column<Guid>(type: "uuid", nullable: false),
                     OperationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Currency = table.Column<string>(type: "text", nullable: false),
-                    Amount = table.Column<string>(type: "text", nullable: false),
-                    TransactionState = table.Column<string>(type: "text", nullable: false)
+                    Amount = table.Column<decimal>(type: "numeric", nullable: false),
+                    State = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -110,6 +111,16 @@ namespace BankRestAPI.Migrations
                         principalTable: "Bank",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Transfer_Customer_FromCustomerDocumentNumber",
+                        column: x => x.FromCustomerDocumentNumber,
+                        principalTable: "Customer",
+                        principalColumn: "DocumentNumber");
+                    table.ForeignKey(
+                        name: "FK_Transfer_Customer_ToCustomerDocumentNumber",
+                        column: x => x.ToCustomerDocumentNumber,
+                        principalTable: "Customer",
+                        principalColumn: "DocumentNumber");
                 });
 
             migrationBuilder.CreateIndex(
@@ -133,6 +144,11 @@ namespace BankRestAPI.Migrations
                 column: "FromBankId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Transfer_FromCustomerDocumentNumber",
+                table: "Transfer",
+                column: "FromCustomerDocumentNumber");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Transfer_ToAccountId",
                 table: "Transfer",
                 column: "ToAccountId");
@@ -141,6 +157,11 @@ namespace BankRestAPI.Migrations
                 name: "IX_Transfer_ToBankId",
                 table: "Transfer",
                 column: "ToBankId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Transfer_ToCustomerDocumentNumber",
+                table: "Transfer",
+                column: "ToCustomerDocumentNumber");
         }
 
         /// <inheritdoc />

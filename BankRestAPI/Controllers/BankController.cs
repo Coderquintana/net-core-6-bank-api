@@ -1,4 +1,5 @@
 ﻿using BankRestAPI.Data;
+using BankRestAPI.DTOs;
 using BankRestAPI.Models;
 using BankRestAPI.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -10,15 +11,13 @@ namespace BankRestAPI.Controllers
     public class BankController : Controller
     {
         private readonly ILogger<BankController> _logger;
-        private readonly IEntityService<Bank> _bankService;
-        private readonly BankDbContext _dbContext;
+        private readonly BankService _bankService;
 
         public BankController(ILogger<BankController> logger,
-            IEntityService<Bank> bankService, BankDbContext dbContext)
+            BankService bankService)
         {
             _logger = logger;
             _bankService = bankService;
-            _dbContext = dbContext;
         }
 
         [HttpGet]
@@ -27,14 +26,14 @@ namespace BankRestAPI.Controllers
             return Ok(await _bankService.GetAll());
         }
 
-        [HttpGet("{id:guid}")]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetBank(Guid id)
         {
             var bank = await _bankService.GetById(id);
 
             if (bank == null)
             {
-                return NotFound();
+                return NotFound("Bank not Found");
             }
 
             return Ok(bank);
@@ -42,17 +41,27 @@ namespace BankRestAPI.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> AddBank(Bank bank)
+        public async Task<IActionResult> AddBank(BankDTO bankDto)
         {
             try
             {
-                if (ContainsNullOrEmpty(bank) || BankExists(bank) ) 
-                { 
-                    return BadRequest(); 
-                }
-                
-                return StatusCode(201, await _bankService.Create(bank));
+                Bank bank = new Bank();
 
+                if (ContainsNullOrEmpty(bankDto))
+                {
+                    return BadRequest("Field required cannot be null or empty");
+                }
+                if (await BankExists(bankDto))
+                {
+                    return BadRequest("Bank already exists");
+                }
+
+                bank.Name = bankDto.Name;
+                bank.Address = bankDto.Address;
+                bank.Code = bankDto.Code;
+
+                await _bankService.Create(bank);
+                return Ok(bank);
             }
             catch (Exception ex)
             {
@@ -61,54 +70,52 @@ namespace BankRestAPI.Controllers
         }
 
         [HttpPut]
-        [Route("{id:guid}")]
-        public async Task<IActionResult> UpdateBank(Guid id, Bank bank)
+        [Route("{code}")]
+        public async Task<IActionResult> UpdateBank(string code, BankDTO bankDto)
         {
-
-            var entity = await _bankService.GetById(id);
+            var entity = await _bankService.GetByCode(code);
 
             if (entity == null)
             {
                 _logger.LogError($"Bank {entity} is null");
-                return BadRequest();
+                return BadRequest("Bank not Found");
             }
 
-            if (BankExists(bank))
+            if (await BankExists(bankDto))
             {
-                return BadRequest();
+                return BadRequest("Bank Already Exists");
             }
 
-            Update(entity, bank);
+            if (!string.IsNullOrEmpty(bankDto.Code))
+            {
+                entity.Code = bankDto.Code;
+            }
+            if (!string.IsNullOrEmpty(bankDto.Name))
+            {
+                entity.Name = bankDto.Name;
+            }
+            if (!string.IsNullOrEmpty(bankDto.Address))
+            {
+                entity.Address = bankDto.Address;
+            }
+            await _bankService.Update(entity);
 
             return Ok(entity);
         }
 
-        [HttpDelete("{id:guid}")]
-        public async Task<IActionResult> DeleteBank(Guid id)
+        [HttpDelete("{code}")]
+        public async Task<IActionResult> DeleteBank(string code)
         {
-            var bank = await _bankService.GetById(id);
+            var bank = await _bankService.GetByCode(code);
 
-            if (bank == null) { return NotFound($"Bank with id {id} not found"); }
+            if (bank == null) { return NotFound($"Bank with id {code} not found"); }
 
-            await _bankService.Delete(id);
+            await _bankService.Delete(bank.Id);
 
             return Ok(await _bankService.GetAll());
         }
 
-        private async void Update(Bank entity, Bank bank)
-        {
-            if (!string.IsNullOrEmpty(bank.Name))
-            {
-                entity.Name = bank.Name;
-            }
-            if (!string.IsNullOrEmpty(bank.Address))
-            {
-                entity.Address = bank.Address;
-            }
-            await _bankService.Update(entity);
-        }
-
-        private bool ContainsNullOrEmpty(Bank bank)
+        private bool ContainsNullOrEmpty(BankDTO bank)
         {
             if (bank == null)
             {
@@ -129,18 +136,22 @@ namespace BankRestAPI.Controllers
             return false;
         }
 
-        private bool BankExists(Bank bank)
+        private async Task<bool> BankExists(BankDTO bank)
         {
-            if (_dbContext.Bank.Any(b => b.Name == bank.Name && b.Id != bank.Id))
+            var bankCode = await _bankService.GetByCode(bank.Code);
+            var bankName = await _bankService.GetByName(bank.Name);
+            if (bankCode != null)
+            {
+                _logger.LogError($"Bank {bank.Code} already exists");
+                return true;
+            }
+
+            if (bankName != null)
             {
                 _logger.LogError($"Bank {bank.Name} already exists");
                 return true;
             }
-            if (_dbContext.Bank.Any(b => b.Address == bank.Address && b.Id != bank.Id))
-            {
-                _logger.LogError($"Address {bank.Address} corresponds to another Bank");
-                return true;
-            }
+
             return false;
         }
 

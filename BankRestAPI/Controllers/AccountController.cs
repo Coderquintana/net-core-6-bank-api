@@ -1,4 +1,5 @@
 ﻿using BankRestAPI.Data;
+using BankRestAPI.DTOs;
 using BankRestAPI.Models;
 using BankRestAPI.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -12,11 +13,11 @@ namespace BankRestAPI.Controllers
     {
         private readonly BankDbContext _dbContext;
         private readonly ILogger<AccountController> _logger;
-        private readonly IEntityService<Account> _accountService;
-        private readonly IEntityService<Bank> _bankService;
+        private readonly AccountService _accountService;
+        private readonly BankService _bankService;
         private readonly CustomerService _customerService;
 
-        public AccountController(BankDbContext dbContext, ILogger<AccountController> logger, IEntityService<Account> accountService, IEntityService<Bank> bankService, CustomerService customerService)
+        public AccountController(BankDbContext dbContext, ILogger<AccountController> logger, AccountService accountService, BankService bankService, CustomerService customerService)
         {
             _dbContext = dbContext;
             _logger = logger;
@@ -45,11 +46,13 @@ namespace BankRestAPI.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> AddAccount(Account account)
+        public async Task<IActionResult> AddAccount(AccountDTO accountDto)
         {
             try
             {
-                if (ContainsNullOrEmpty(account) || AccountExists(account) || !ValidateBankAndCustomer(account))
+                Account account = new Account();
+
+                if (ContainsNullOrEmpty(accountDto) || AccountExists(accountDto))
                 {
                     return BadRequest();
                 }
@@ -59,9 +62,26 @@ namespace BankRestAPI.Controllers
                     return BadRequest("El saldo de la cuenta no puede ser negativo");
                 }
 
-                account.Customer = await _customerService.GetById(account.CustomerDocumentNumber);
-                account.Bank = await _bankService.GetById(account.BankId);
-                return StatusCode(201, await _accountService.Create(account));
+                var Customer = await _customerService.GetById(accountDto.Customer);
+                var Bank = await _bankService.GetByCode(accountDto.Bank);
+
+                if (Bank == null)
+                {
+                    return BadRequest("Bank Not Found");
+                }
+                if (Customer == null)
+                {
+                    return BadRequest("Customer Not Found");
+                }
+                
+                account.Number = accountDto.Number;
+                account.Currency = accountDto.Currency;
+                account.Balance = accountDto.Balance;   
+                account.Customer = Customer;
+                account.Bank = Bank;
+
+                await _accountService.Create(account);
+                return Ok(account);
 
             }
             catch (Exception ex)
@@ -72,19 +92,19 @@ namespace BankRestAPI.Controllers
 
    
 
-        [HttpDelete("{id:guid}")]
-        public async Task<IActionResult> DeleteAccount(Guid id)
+        [HttpDelete("{code}")]
+        public async Task<IActionResult> DeleteAccount(string code)
         {
-            var account = await _accountService.GetById(id);
+            var account = await _accountService.GetByNumber(code);
 
-            if (account == null) { return NotFound($"Account with id {id} not found"); }
+            if (account == null) { return NotFound($"Account with id {code} not found"); }
 
-            await _accountService.Delete(id);
+            await _accountService.Delete(account.Id);
 
             return Ok(await _accountService.GetAll());
         }
 
-        private bool ContainsNullOrEmpty(Account account)
+        private bool ContainsNullOrEmpty(AccountDTO account)
         {
             if (account == null)
             {
@@ -96,27 +116,22 @@ namespace BankRestAPI.Controllers
                 _logger.LogError("AccountCurrrency is null or empty");
                 return true;
             }
-            if (string.IsNullOrEmpty(account.CustomerDocumentNumber))
+            if (account.Customer == null)
             {
-                _logger.LogError("AccountCustomerDocumentNumber is null or empty");
+                _logger.LogError("Customer is null or empty");
                 return true;
             }
-            if (account.BankId == Guid.Empty)
+            if (account.Bank == null)
             {
-                _logger.LogError("AccountBankId is empty");
+                _logger.LogError("Bank is null");
                 return true;
             }
 
             return false;
         }
 
-        private bool AccountExists(Account account)
+        private bool AccountExists(AccountDTO account)
         {
-            if (_dbContext.Account.Any(a => a.CustomerDocumentNumber == account.CustomerDocumentNumber))
-            {
-                _logger.LogError($"Account with CustomerDocumentNumber {account.CustomerDocumentNumber} already exists");
-                return true;
-            }
             if (_dbContext.Account.Any(a => a.Number == account.Number))
             {
                 _logger.LogError($"Account with Number {account.Number} already exists");
@@ -124,23 +139,5 @@ namespace BankRestAPI.Controllers
             }
             return false;
         }
-
-        private bool ValidateBankAndCustomer(Account account)
-        {
-            var bank = _bankService.GetById(account.BankId);
-            var customer = _customerService.GetById(account.CustomerDocumentNumber);
-            if (bank == null)
-            {
-                _logger.LogError($"Bank with id {account.BankId} does not exist");
-                return false;
-            }
-            if (customer == null)
-            {
-                _logger.LogError($"Customer with Document Number {account.CustomerDocumentNumber} does not exist");
-                return false;
-            }
-            return true;
-        }
-
     }
 }

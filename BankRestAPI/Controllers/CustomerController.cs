@@ -9,14 +9,12 @@ namespace BankRestAPI.Controllers
     [Route("/api/v1/[controller]s")]
     public class CustomerController : Controller
     {
-        private readonly BankDbContext _dbContext;
         private readonly CustomerService _customerService;
         private readonly ILogger<CustomerController> _logger;
 
 
-        public CustomerController(BankDbContext dbContext, CustomerService customerService, ILogger<CustomerController> logger)
+        public CustomerController(CustomerService customerService, ILogger<CustomerController> logger)
         {
-            _dbContext = dbContext;
             _customerService = customerService;
             _logger = logger;
         }
@@ -47,9 +45,9 @@ namespace BankRestAPI.Controllers
             {
                 if (ContainsNullOrEmpty(customer))
                 {
-                    return BadRequest();
+                    return BadRequest("Required fields cannot be Empty or Null");
                 }
-                if (CustomerExists(customer))
+                if (await CustomerExists(customer))
                 {
                     return BadRequest("Customer already exists");
                 }
@@ -141,14 +139,12 @@ namespace BankRestAPI.Controllers
             return false;
         }
 
-        private bool CustomerExists(Customer customer)
+        private async Task<bool> CustomerExists(Customer customer)
         {
-            if (_dbContext.Customer
-                .Any(c => c.DocumentNumber == customer.DocumentNumber
-                    && c.DocumentType == customer.DocumentNumber))
-            {
-                return true;
-            }
+            var newCustomer = await _customerService.GetByDocument(customer.DocumentNumber);
+            if (newCustomer != null)
+                { return true; }
+            
             return false;
         }
     }
