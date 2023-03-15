@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "VpDKW+ADQxSjB/+LO4W2eICtfdyIAruJbIo+20GWhhY=",
+  "Source": "BankRestAPI",
+  "BasePath": "_content/BankRestAPI",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
