@@ -1,0 +1,83 @@
+/*
+         
+        // GET: api/Bank/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Bank>> GetBank(Guid id)
+        {
+            var bank = await _context.Bank.FindAsync(id);
+
+            if (bank == null)
+            {
+                return NotFound();
+            }
+
+            return bank;
+        }
+
+        // PUT: api/Bank/5
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutBank(Guid id, Bank bank)
+        {
+            if (id != bank.Id)
+            {
+                return BadRequest();
+            }
+
+            _context.Entry(bank).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!BankExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
+        // POST: api/Bank
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost]
+        public async Task<ActionResult<Bank>> PostBank(Bank bank)
+        {
+            _context.Bank.Add(bank);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetBank", new { id = bank.Id }, bank);
+        }
+
+        // DELETE: api/Bank/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteBank(Guid id)
+        {
+            var bank = await _context.Bank.FindAsync(id);
+            if (bank == null)
+            {
+                return NotFound();
+            }
+
+            _context.Bank.Remove(bank);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        private bool BankExists(Guid id)
+        {
+            return _context.Bank.Any(e => e.Id == id);
+        }
+        */
+
+Reporte 13/03/2023 Francisco Quintana
+Buenas Días
+- CRUD Bank y Customer funcionando en primera versión, actualmente trabajando en servicios de Account y Transfer para implementar los controllers y luego terminar de agregar las validaciones específicas de cada model.
