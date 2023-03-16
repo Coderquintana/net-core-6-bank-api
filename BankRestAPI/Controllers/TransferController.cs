@@ -75,7 +75,7 @@ namespace BankRestAPI.Controllers
             {
                 return BadRequest("The FromAccount doesnt belong to that bank");
             }
-            if (fromAccount.Bank.Code != toBank.Code)
+            if (toAccount.Bank.Code != toBank.Code)
             {
                 return BadRequest("The ToAccount doesnt belong to that bank");
             }
@@ -126,7 +126,7 @@ namespace BankRestAPI.Controllers
             var transfer = await _transferService.GetById(id);
             if (transfer == null)
             {
-                return BadRequest("Transfer Not Found");
+                return NotFound("Transfer Not Found");
             }
             transfer.State = transactionState;
             await _transferService.Update(transfer);
@@ -148,6 +148,10 @@ namespace BankRestAPI.Controllers
         public async Task<IActionResult> GetTransferByAccount(string accountNumber)
         {
             var transfer = await _transferService.FindByAccount(accountNumber);
+            if (transfer is null)
+            {
+                return NotFound();
+            }
             return Ok(transfer);
         }
 
@@ -155,6 +159,10 @@ namespace BankRestAPI.Controllers
         public async Task<IActionResult> GetTransferByCustomer(string documentNumber)
         {
             var transfer = await _transferService.FindByCustomer(documentNumber);
+            if (transfer is null)
+            {
+                return NotFound();
+            }
             return Ok(transfer);
         }
     }

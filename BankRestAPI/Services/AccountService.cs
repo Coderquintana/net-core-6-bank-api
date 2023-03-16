@@ -25,8 +25,11 @@ namespace BankRestAPI.Services
         public async Task Delete(Guid id)
         {
             var account = await _dbContext.Account.FindAsync(id);
-            _dbContext.Account.Remove(account);
-            await _dbContext.SaveChangesAsync();
+            if (account != null)
+            {
+                _dbContext.Account.Remove(account);
+                await _dbContext.SaveChangesAsync();
+            }
         }
 
         public async Task<IEnumerable<Account>> GetAll()

@@ -13,7 +13,7 @@ namespace BankRestAPI.Services
             _dbContext = dbContext;
         }
 
-        public async Task<Transfer> Create(Transfer entity)
+        public async Task<Transfer?> Create(Transfer entity)
         {
             await _dbContext.Transfer.AddAsync(entity);
             await _dbContext.SaveChangesAsync();
@@ -23,11 +23,14 @@ namespace BankRestAPI.Services
         public async Task Delete(Guid id)
         {
             var transfer = await _dbContext.Transfer.FindAsync(id);
-            _dbContext.Transfer.Remove(transfer);
-            await _dbContext.SaveChangesAsync();
+            if (transfer != null)
+            {
+                _dbContext.Transfer.Remove(transfer);
+                await _dbContext.SaveChangesAsync();
+            }
         }
 
-        public async Task<IEnumerable<Transfer>> GetAll()
+        public async Task<IEnumerable<Transfer?>> GetAll()
         {
             return await _dbContext.Transfer
                 .Include(t => t.FromBank)

@@ -12,8 +12,7 @@ builder.Services.AddControllers();
 //    options => options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true);
 // Add database context
 builder.Services.AddDbContext<BankDbContext>(options => 
-    options.UseNpgsql(builder.Configuration.GetConnectionString("BankAPIConnectionString"))
-);
+    options.UseNpgsql(builder.Configuration.GetConnectionString("BankAPIConnectionString")));
 
 // Inject service dependency 
 builder.Services.AddScoped<BankService>();

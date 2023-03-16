@@ -15,7 +15,7 @@ namespace BankRestAPI.Services
             _dbContext = dbContext;
         }
 
-        public async Task<Bank> Create(Bank entity)
+        public async Task<Bank?> Create(Bank entity)
         {
             await _dbContext.Bank.AddAsync(entity);
             await _dbContext.SaveChangesAsync();
@@ -25,11 +25,14 @@ namespace BankRestAPI.Services
         public async Task Delete(Guid id)
         {
             var bank = await _dbContext.Bank.FindAsync(id);
-            _dbContext.Bank.Remove(bank);
-            await _dbContext.SaveChangesAsync();
+            if (bank != null)
+            {
+                _dbContext.Bank.Remove(bank);
+                await _dbContext.SaveChangesAsync();
+            }
         }
 
-        public async Task<IEnumerable<Bank>> GetAll()
+        public async Task<IEnumerable<Bank?>> GetAll()
         {
             return await _dbContext.Bank.ToListAsync();
         }
@@ -40,7 +43,7 @@ namespace BankRestAPI.Services
             return bank;
         }
 
-        public async Task<Bank> Update(Bank entity)
+        public async Task<Bank?> Update(Bank entity)
         {
             _dbContext.Bank.Update(entity);
             await _dbContext.SaveChangesAsync();

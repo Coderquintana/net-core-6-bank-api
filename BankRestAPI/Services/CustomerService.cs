@@ -22,8 +22,11 @@ namespace BankRestAPI.Services
 
         public async Task Delete(string DocumentNumber)
         {
-            Customer customer = await _dbContext.Customer.FindAsync(DocumentNumber);
-            _dbContext.Customer.Remove(customer);
+            var customer = await _dbContext.Customer.FindAsync(DocumentNumber);
+            if (customer != null)
+            {
+                _dbContext.Customer.Remove(customer);
+            }
             await _dbContext.SaveChangesAsync();
         }
 
