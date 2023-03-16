@@ -11,6 +11,7 @@ namespace BankRestAPI.Controllers
     [Route("/api/v1/[controller]s")]
     public class AccountController : Controller
     {
+        // Service Injection, logger and constructors
         private readonly BankDbContext _dbContext;
         private readonly ILogger<AccountController> _logger;
         private readonly AccountService _accountService;
@@ -26,40 +27,45 @@ namespace BankRestAPI.Controllers
             _customerService = customerService;
         }
 
+        // api/v1/Accounts ------------------- GET -------------------
         [HttpGet]
         public async Task<IActionResult> GetAccounts()
         {
             return Ok(await _accountService.GetAll());
         }
 
-        [HttpGet("{id:guid}")]
-        public async Task<IActionResult> GetAccount(Guid id)
+        // api/v1/Accounts/{id} ------------------- GET BY ACCOUNT NUMBER -------------------
+        [HttpGet("{number}")]
+        public async Task<IActionResult> GetAccount(string number)
         {
-            var account = await _accountService.GetById(id);
+            var account = await _accountService.GetByNumber(number);
 
             if (account == null)
             {
-                return NotFound();
+                return NotFound("Account Not Found");
             }
             return Ok(account);
         }
 
-
+        // api/v1/Accounts ------------------- POST -------------------
         [HttpPost]
         public async Task<IActionResult> AddAccount(AccountDTO accountDto)
         {
             try
             {
                 Account account = new Account();
+                string result = string.Empty;
 
-                if (ContainsNullOrEmpty(accountDto) || AccountExists(accountDto))
+                result = ContainsNullOrEmpty(accountDto);
+                if (!result.Equals("valid"))
                 {
-                    return BadRequest();
+                    return BadRequest(result);
                 }
 
-                if (account.Balance < 0)
+                result = AccountIsValid(accountDto);
+                if(!result.Equals("valid")) 
                 {
-                    return BadRequest("El saldo de la cuenta no puede ser negativo");
+                    return BadRequest(result);
                 }
 
                 var Customer = await _customerService.GetById(accountDto.Customer);
@@ -90,8 +96,7 @@ namespace BankRestAPI.Controllers
             }
         }
 
-   
-
+        // api/v1/Accounts ------------------- DELETE-------------------
         [HttpDelete("{code}")]
         public async Task<IActionResult> DeleteAccount(string code)
         {
@@ -104,40 +109,47 @@ namespace BankRestAPI.Controllers
             return Ok(await _accountService.GetAll());
         }
 
-        private bool ContainsNullOrEmpty(AccountDTO account)
+        // ------------------- My New Account Null or Empty Validations -------------------
+        private string ContainsNullOrEmpty(AccountDTO account)
         {
             if (account == null)
             {
                 _logger.LogError("Account is null");
-                return true;
+                return "Account is null";
             }
             if (string.IsNullOrEmpty(account.Currency))
             {
                 _logger.LogError("AccountCurrrency is null or empty");
-                return true;
+                return "AccountCurrrency is null or empty";
             }
             if (account.Customer == null)
             {
                 _logger.LogError("Customer is null or empty");
-                return true;
+                return "Customer is null or empty";
             }
             if (account.Bank == null)
             {
                 _logger.LogError("Bank is null");
-                return true;
+                return "Bank is null";
             }
 
-            return false;
+            return "valid";
         }
 
-        private bool AccountExists(AccountDTO account)
+        // ------------------- My Account Validations -------------------
+        private string AccountIsValid(AccountDTO account)
         {
             if (_dbContext.Account.Any(a => a.Number == account.Number))
             {
                 _logger.LogError($"Account with Number {account.Number} already exists");
-                return true;
+                return $"Account with Number {account.Number} already exists";
             }
-            return false;
+            if (account.Balance <= 0)
+            {
+                _logger.LogError("The balance cannot be negative or zero");
+                return "The balance cannot be negative or zero";
+            }
+            return "valid";
         }
     }
 }
