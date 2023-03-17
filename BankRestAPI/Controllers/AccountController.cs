@@ -34,7 +34,7 @@ namespace BankRestAPI.Controllers
             return Ok(await _accountService.GetAll());
         }
 
-        // api/v1/Accounts/{id} ------------------- GET BY ACCOUNT NUMBER -------------------
+        // api/v1/Accounts/{number} ------------------- GET BY ACCOUNT NUMBER -------------------
         [HttpGet("{number}")]
         public async Task<IActionResult> GetAccount(string number)
         {
@@ -94,6 +94,21 @@ namespace BankRestAPI.Controllers
             {
                 return StatusCode(500, ex.Message);
             }
+        }
+
+        // api/v1/Account/{number}/{amount} ------------------- PUT -------------------
+        [HttpPut]
+        [Route("{number}/{amount}")]
+        public async Task<IActionResult> UpdateBalance(string number, decimal amount)
+        {
+            var account = await _accountService.GetByNumber(number);
+            if (account  == null)
+            {
+                return NotFound("Account Not Found");
+            }
+            account.Balance = amount;
+            await _accountService.Update(account);
+            return Ok(await _accountService.GetById(account.Id));
         }
 
         // api/v1/Accounts ------------------- DELETE-------------------

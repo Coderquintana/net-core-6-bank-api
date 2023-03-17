@@ -7,6 +7,7 @@ namespace BankRestAPI.Models
     {
         [Key]
         public Guid Id { get; set; } = default;
+
         public string FromBankName { get; set; } = string.Empty;
         public Customer FromCustomer { get; set; } = new Customer();
         public Bank FromBank { get; set; } = new Bank();
