@@ -106,6 +106,10 @@ namespace BankRestAPI.Controllers
             {
                 return NotFound("Account Not Found");
             }
+            if (amount <= 0)
+            {
+                return BadRequest("Amount negative or zero not valid");
+            }
             account.Balance = amount;
             await _accountService.Update(account);
             return Ok(await _accountService.GetById(account.Id));

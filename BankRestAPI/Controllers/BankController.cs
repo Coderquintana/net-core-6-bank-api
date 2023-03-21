@@ -117,6 +117,13 @@ namespace BankRestAPI.Controllers
         [HttpDelete("{code}")]
         public async Task<IActionResult> DeleteBank(string code)
         {
+            var token = Request.Headers.Where(x => x.Key == "Authorization").FirstOrDefault();
+
+            if (token.Value != "mytoken")
+            {
+                return BadRequest("Token Incorrecto");
+            }
+
             var bank = await _bankService.GetByCode(code);
 
             if (bank == null) { return NotFound($"Bank with id {code} not found"); }

@@ -52,6 +52,10 @@ namespace BankRestAPI.Controllers
             {
                 return BadRequest(result);
             }
+            if (transferDto.Amount <= 0)
+            {
+                return BadRequest("Amount Invalid, cannot be negative or zero");
+            }
 
             var fromBank = await _bankService.GetByCode(transferDto.FromBank);
             var toBank = await _bankService.GetByCode(transferDto.ToBank);
@@ -65,6 +69,10 @@ namespace BankRestAPI.Controllers
             {
                 return BadRequest("Bank, Customer or Account not Found");
 
+            }
+            if (transferDto.Currency != fromAccount.Currency || transferDto.Currency != toAccount.Currency)
+            {
+                return BadRequest("Transfer invalid, Account currency issues");
             }
 
             transfer.FromBankName = fromBank.Name;

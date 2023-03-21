@@ -92,9 +92,9 @@ namespace BankRestAPI.Controllers
             {
                 entity.FullName = customer.FullName;
             }
-            if (!string.IsNullOrEmpty(customer.DocumentNumber))
+            if (!string.IsNullOrEmpty(customer.DocumentType))
             {
-                entity.DocumentNumber = customer.DocumentNumber;
+                entity.DocumentType = customer.DocumentType;
             }
 
             await _customerService.Update(entity);  

@@ -43,9 +43,9 @@ namespace BankRestAPI.Services
         public async Task<Account?> GetById(Guid id)
         {
             var account = await _dbContext.Account
-                .Include (a => a.Customer)
+                .Include(a => a.Customer)
                 .Include(b => b.Bank)
-                .FirstOrDefaultAsync(a=>a.Id == id);
+                .FirstOrDefaultAsync(a => a.Id == id);
             return account;
         }
 
@@ -58,7 +58,10 @@ namespace BankRestAPI.Services
 
         public async Task<Account?> GetByNumber(string number)
         {
-            var account = await _dbContext.Account.FirstOrDefaultAsync(b => b.Number == number);
+            var account = await _dbContext.Account
+                .Include(a => a.Customer)
+                .Include(b => b.Bank)
+                .FirstOrDefaultAsync(b => b.Number == number);
             return account;
         }
     }
