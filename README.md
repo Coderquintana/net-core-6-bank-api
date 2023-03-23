@@ -9,7 +9,7 @@ To run this application, you'll need to have the following software installed:
 - NET Core 6
 - PostgreSQL 15
 ## Getting Started
-1. Clone the repository: git clone https://github.com/JQuintanaDev/net-core-6-bank-api.git
+1. Clone the repository: git clone https://github.com/Coderquintana/net-core-6-bank-api.git
 2. Open the solution in Visual Studio 2022 (Sugestión) or any IDE of your preference.
 3. Update the connection string in appsettings.json to point to your local PostgreSQL instance:
 ```bash
